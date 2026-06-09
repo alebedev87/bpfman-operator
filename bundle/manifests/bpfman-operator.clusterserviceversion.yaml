@@ -1047,6 +1047,7 @@ metadata:
     operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
     repository: https://github.com/bpfman/bpfman
     support: bpfman Community
+    specialannotation: andrey
   labels:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.arm64: supported
