@@ -101,23 +101,23 @@ func (t TcProgramDirection) String() string {
 
 var log = ctrl.Log.WithName("bpfman-helpers")
 
-// getk8sConfig gets a kubernetes config automatically detecting if it should
-// be the in or out of cluster config. If this step fails panic.
+// GetK8sConfigOrDie gets a kubernetes config, preferring KUBECONFIG when set,
+// then falling back to in-cluster config.
 func GetK8sConfigOrDie() *rest.Config {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		kubeConfig :=
-			clientcmd.NewDefaultClientConfigLoadingRules().GetDefaultFilename()
-		config, err = clientcmd.BuildConfigFromFlags("", kubeConfig)
-		if err != nil {
-			panic(err)
+	rules := clientcmd.NewDefaultClientConfigLoadingRules()
+	if rules.GetDefaultFilename() != "" {
+		config, err := clientcmd.BuildConfigFromFlags("", rules.GetDefaultFilename())
+		if err == nil {
+			log.Info("Using kubeconfig", "path", rules.GetDefaultFilename())
+			return config
 		}
-
-		log.Info("Program running from outside of the cluster, picking config from --kubeconfig flag")
-	} else {
-		log.Info("Program running inside the cluster, picking the in-cluster configuration")
 	}
 
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err)
+	}
+	log.Info("Program running inside the cluster, picking the in-cluster configuration")
 	return config
 }
 
